@@ -1,0 +1,37 @@
+services:
+  app:
+    build: .
+    image: java-sample-app:compose
+    ports:
+      - "8095:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/labdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: changeme
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - lab12-network
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: labdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - lab12-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d labdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+networks:
+  lab12-network:
+
+volumes:
+  postgres-data:
